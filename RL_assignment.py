@@ -145,14 +145,19 @@ class TrainEnv(gym.Env):
         self.ego_position += self.current_speed * self.delta_t
         
         # Get reference speed and lead vehicle position
-        self.ref_speed = self.current_episode[self.step_idx]
-        lead_position = self.current_position_episode[self.step_idx]
+        ref_speed = self.full_data[self.idx]
+        lead_position = self.lead_positions[self.idx]
         
         # Calculate distance to lead vehicle
         distance_to_lead = lead_position - self.ego_position
         
+        # Calculate lead vehicle speed
+        lead_speed = 0
+        if self.idx > 0:
+            lead_speed = lead_position - self.lead_positions[self.idx-1]
+        
         # Speed error
-        speed_error = abs(self.current_speed - self.ref_speed)
+        speed_error = abs(self.current_speed - ref_speed)
         
         # Distance error
         if distance_to_lead < MIN_SAFE_DISTANCE:
@@ -167,18 +172,19 @@ class TrainEnv(gym.Env):
         
         # Comprehensive ACC reward
         # Balance between speed following, safe distance, and comfort
-        reward = -speed_error - 3.0 * distance_error - 0.05 * abs(jerk) - 0.05 * abs(accel)
+        reward = -speed_error - 2.0 * distance_error - 0.1 * abs(jerk) - 0.05 * abs(accel)
 
-        self.step_idx += 1
-        terminated = (self.step_idx >= self.episode_len)
+        self.idx += 1
+        terminated = (self.idx >= self.n_steps)
         truncated = False
 
-        obs = np.array([self.current_speed, self.ref_speed, distance_to_lead], dtype=np.float32)
+        obs = np.array([self.current_speed, ref_speed, distance_to_lead], dtype=np.float32)
         info = {
             "speed_error": speed_error, 
             "distance_error": distance_error,
             "distance": distance_to_lead,
-            "jerk": jerk
+            "jerk": jerk,
+            "lead_speed": lead_speed
         }
         return obs, reward, terminated, truncated, info
 
