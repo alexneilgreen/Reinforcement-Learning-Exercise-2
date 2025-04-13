@@ -167,7 +167,7 @@ class TrainEnv(gym.Env):
         
         # Comprehensive ACC reward
         # Balance between speed following, safe distance, and comfort
-        reward = -speed_error - 2.0 * distance_error - 0.1 * abs(jerk) - 0.05 * abs(accel)
+        reward = -speed_error - 3.0 * distance_error - 0.05 * abs(jerk) - 0.05 * abs(accel)
 
         self.step_idx += 1
         terminated = (self.step_idx >= self.episode_len)
@@ -548,7 +548,7 @@ def main():
         distances.append(obs[2])            # distance to lead vehicle
         rewards.append(reward)
         jerks.append(info["jerk"])
-        lead_speeds.append(info.get("lead_speed", 0))
+        lead_speeds.append(info["lead_speed"])
         
         if terminated or truncated:
             break
