@@ -285,7 +285,7 @@ class TestEnv(gym.Env):
             "distance_error": distance_error,
             "distance": distance_to_lead,
             "jerk": jerk,
-            "lead_speed": (lead_position - self.lead_positions[self.idx-1]) / self.delta_t if self.idx > 0 else 0
+            "lead_speed": (lead_position - self.lead_positions[self.idx-2]) / self.delta_t if (self.idx-1) > 0 else 0
         }
         return obs, reward, terminated, truncated, info
 
@@ -490,7 +490,7 @@ def main():
         model = PPO(
             **common_params,
             batch_size=args.batch_size,
-            n_steps=1024,  # PPO-specific parameter
+            n_steps=2048,  # PPO-specific parameter
             ent_coef=0.01 if args.ent_coef == -1.0 else args.ent_coef
         )
     elif args.model == "TD3":
